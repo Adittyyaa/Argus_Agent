@@ -1,0 +1,29 @@
+# Environment & Credentials (CRITICAL - DO NOT COMMIT)
+.env
+*.env
+.env.local
+
+# Python Caches & Virtual Environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Data & SQLite Databases
+*.db
+audit.db
+tokens.json
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Patch & Scratch Files
+*.patch
+scratch/

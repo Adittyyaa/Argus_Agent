@@ -1,0 +1,17 @@
+# Environment & Credentials
+.env
+*.env
+
+# Python Caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data & SQLite Databases
+*.db
+audit.db
+tokens.json
+
+# Operating System & IDE
+.DS_Store
+*.patch
