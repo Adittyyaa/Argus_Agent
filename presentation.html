@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AuthorChain – ArmorIQ Personal Assistant Swarm | Hackathon 2026</title>
+<meta name="description" content="AuthorChain: Cryptographically audited multi-agent personal assistant built with ArmorIQ SDK. Microsoft Hackathon 2026 Round 2 Presentation."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #050810;
+    --surface: rgba(255,255,255,0.04);
+    --surface2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #f0f2ff;
+    --muted: #8892b0;
+    --accent1: #6c63ff;
+    --accent2: #00d4aa;
+    --accent3: #ff6b6b;
+    --accent4: #ffd166;
+    --glow1: rgba(108,99,255,0.25);
+    --glow2: rgba(0,212,170,0.2);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  .bg-mesh {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(108,99,255,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,212,170,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 60% 50%, rgba(255,107,107,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    z-index: 100;
+    box-shadow: 0 0 12px rgba(108,99,255,0.8);
+  }
+
+  .slide-counter {
+    position: fixed; top: 24px; right: 32px;
+    z-index: 100;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--muted); letter-spacing: 1px;
+  }
+  .slide-counter span { color: var(--text); font-weight: 600; }
+
+  .nav-dots {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 100;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border2); cursor: pointer; transition: all 0.3s ease;
+  }
+  .dot.active {
+    width: 28px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    box-shadow: 0 0 8px var(--glow1);
+  }
+
+  .nav-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    z-index: 100;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--muted); width: 44px; height: 44px;
+    border-radius: 12px; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; backdrop-filter: blur(10px);
+  }
+  .nav-btn:hover { color: var(--text); background: var(--surface); border-color: var(--accent1); box-shadow: 0 0 16px var(--glow1); }
+  #prev-btn { left: 20px; }
+  #next-btn { right: 20px; }
+
+  .slides-container { position: relative; z-index: 1; width: 100%; height: 100vh; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px 80px;
+    opacity: 0; transform: translateY(30px) scale(0.98);
+    transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
+  .slide.exit   { opacity: 0; transform: translateY(-20px) scale(1.01); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .badge-purple { background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.4); color: #a29bff; }
+  .badge-teal   { background: rgba(0,212,170,0.1);  border: 1px solid rgba(0,212,170,0.4);  color: #00d4aa; }
+  .badge-red    { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.4); color: #ff6b6b; }
+  .badge-gold   { background: rgba(255,209,102,0.1); border: 1px solid rgba(255,209,102,0.4); color: #ffd166; }
+
+  .tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--accent2); margin-bottom: 14px; display: block;
+  }
+
+  h1.hero {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(42px, 6vw, 78px); font-weight: 700;
+    line-height: 1.05; letter-spacing: -2px;
+    background: linear-gradient(135deg, #fff 30%, #a29bff 65%, #00d4aa 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  h2.section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(28px, 4vw, 46px); font-weight: 700; letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 40%, #a29bff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 32px;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* SLIDE 1 */
+  .logo-ring {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin: 0 auto 28px;
+    box-shadow: 0 0 40px var(--glow1), 0 0 80px rgba(108,99,255,0.1);
+    animation: pulse-ring 3s ease-in-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%,100% { box-shadow: 0 0 40px var(--glow1), 0 0 80px rgba(108,99,255,0.1); }
+    50%      { box-shadow: 0 0 60px rgba(108,99,255,0.5), 0 0 120px rgba(108,99,255,0.2); }
+  }
+  .hero-subtitle { font-size: 18px; color: var(--muted); margin: 20px 0 40px; max-width: 560px; line-height: 1.6; text-align: center; }
+  .team-card {
+    padding: 18px 40px; border-radius: 16px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: inline-flex; gap: 48px; margin-top: 8px;
+  }
+  .team-item { text-align: center; }
+  .team-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .team-value { font-size: 15px; font-weight: 600; color: var(--text); }
+  .hackathon-badge { position: absolute; top: 32px; left: 32px; display: flex; gap: 10px; align-items: center; }
+
+  /* SLIDE 2 */
+  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 900px; }
+  .problem-card {
+    padding: 24px 28px; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border); transition: border-color 0.3s;
+  }
+  .problem-card:hover { border-color: var(--accent1); }
+  .problem-card .icon { font-size: 28px; margin-bottom: 12px; }
+  .problem-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .problem-card p  { font-size: 13px; line-height: 1.6; color: var(--muted); }
+  .quote-block {
+    max-width: 900px; width: 100%; padding: 20px 28px;
+    border-left: 3px solid var(--accent3);
+    background: rgba(255,107,107,0.06); border-radius: 0 12px 12px 0;
+    margin-bottom: 24px; font-size: 14px; line-height: 1.7; color: var(--muted);
+  }
+  .quote-block strong { color: var(--accent3); }
+
+  /* SLIDE 3 */
+  .solution-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; width: 100%; max-width: 900px; margin-top: 8px; }
+  .sol-card {
+    padding: 26px 24px; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    text-align: center; transition: all 0.3s ease;
+  }
+  .sol-card:hover { background: var(--surface2); border-color: var(--accent2); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,212,170,0.1); }
+  .sol-card .sol-icon { font-size: 32px; margin-bottom: 14px; }
+  .sol-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .sol-card p  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .vs-bar { max-width: 900px; width: 100%; display: flex; gap: 16px; margin-bottom: 24px; }
+  .vs-item { flex: 1; padding: 14px 20px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+  .vs-before { background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.2); color: #ffb3b3; }
+  .vs-after  { background: rgba(0,212,170,0.08);  border: 1px solid rgba(0,212,170,0.3);   color: #7fffee; }
+  .vs-item span { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 6px; opacity: 0.7; }
+
+  /* SLIDE 4 */
+  .arch-flow { width: 100%; max-width: 900px; display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
+  .arch-node {
+    flex: 1; padding: 18px 14px; text-align: center; border-radius: 14px;
+    border: 1px solid var(--border2); background: var(--surface); transition: all 0.3s;
+  }
+  .arch-node:hover { border-color: var(--accent1); background: var(--surface2); }
+  .arch-node .node-icon { font-size: 22px; margin-bottom: 8px; }
+  .arch-node .node-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .arch-node .node-sub   { font-size: 10px; color: var(--muted); }
+  .arch-arrow { color: var(--accent1); font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+  .tech-stack-grid { width: 100%; max-width: 900px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .tech-pill {
+    padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+  }
+  .tech-pill:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  /* SLIDE 5 */
+  .features-list { width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 14px; }
+  .feat-row {
+    display: flex; gap: 18px; align-items: flex-start;
+    padding: 20px 24px; border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--border); transition: all 0.3s;
+  }
+  .feat-row:hover { background: var(--surface2); border-color: var(--accent2); transform: translateX(4px); box-shadow: 0 8px 30px rgba(0,212,170,0.08); }
+  .feat-num {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; flex-shrink: 0; box-shadow: 0 4px 14px var(--glow1);
+  }
+  .feat-content h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .feat-content p  { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  /* SLIDE 6 */
+  .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; width: 100%; max-width: 900px; }
+  .impact-card {
+    padding: 24px; border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border); transition: all 0.3s;
+  }
+  .impact-card:hover { border-color: var(--accent1); background: var(--surface2); }
+  .impact-card .imp-icon { font-size: 26px; margin-bottom: 10px; }
+  .impact-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .impact-card p  { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+  .stat-row { display: flex; gap: 16px; width: 100%; max-width: 900px; margin-bottom: 22px; }
+  .stat-box {
+    flex: 1; padding: 18px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(0,212,170,0.08));
+    border: 1px solid rgba(108,99,255,0.25); text-align: center;
+  }
+  .stat-val {
+    font-size: 28px; font-weight: 800; font-family: 'Space Grotesk', sans-serif;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* SLIDE 7 */
+  .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 22px; }
+  .demo-screen {
+    padding: 20px; border-radius: 16px;
+    background: #0a0e1a; border: 1px solid var(--border2);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.8;
+  }
+  .demo-screen .ds-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border); font-family: 'Inter', sans-serif;
+  }
+  .ln-ok   { color: #00d4aa; }
+  .ln-warn { color: #ffd166; }
+  .ln-err  { color: #ff6b6b; }
+  .ln-info { color: #a29bff; }
+  .ln-gray { color: #445; }
+
+  .conclusion-box {
+    width: 100%; max-width: 900px;
+    padding: 22px 32px; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(0,212,170,0.1));
+    border: 1px solid rgba(108,99,255,0.35);
+    text-align: center; font-size: 17px; font-weight: 600; line-height: 1.6;
+    position: relative; overflow: hidden;
+  }
+  .conclusion-box::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(108,99,255,0.05), transparent);
+    animation: shimmer 3s infinite;
+  }
+  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  .conclusion-box .cta { color: var(--accent2); font-weight: 700; }
+
+  /* STAGGER */
+  .slide.active .stagger { animation: fadeUp 0.5s ease both; }
+  .slide.active .stagger:nth-child(1) { animation-delay: 0.05s; }
+  .slide.active .stagger:nth-child(2) { animation-delay: 0.15s; }
+  .slide.active .stagger:nth-child(3) { animation-delay: 0.25s; }
+  .slide.active .stagger:nth-child(4) { animation-delay: 0.35s; }
+  .slide.active .stagger:nth-child(5) { animation-delay: 0.45s; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+<div class="grid-overlay"></div>
+<div class="progress-bar" id="progress-bar"></div>
+<div class="slide-counter"><span id="cur-slide">1</span> / 7</div>
+<button class="nav-btn" id="prev-btn" onclick="changeSlide(-1)">&#8249;</button>
+<button class="nav-btn" id="next-btn" onclick="changeSlide(1)">&#8250;</button>
+<div class="nav-dots" id="nav-dots"></div>
+
+<div class="slides-container">
+
+  <!-- SLIDE 1: TITLE -->
+  <section class="slide active" id="slide-1" style="text-align:center">
+    <div class="hackathon-badge">
+      <div class="badge badge-purple">&#127942; Microsoft Hackathon 2026</div>
+      <div class="badge badge-teal">Round 2</div>
+    </div>
+    <div class="logo-ring">&#128272;</div>
+    <span class="tag">Problem Statement 2 &middot; Who Authorized That?</span>
+    <h1 class="hero">AuthorChain</h1>
+    <p class="hero-subtitle">
+      A cryptographically governed Personal Assistant Swarm &mdash; every agent delegation is scoped, signed, and fully auditable with the <strong style="color:#a29bff">ArmorIQ SDK</strong>.
+    </p>
+    <div class="team-card">
+      <div class="team-item"><div class="team-label">Team Name</div><div class="team-value">ByteGuard</div></div>
+      <div class="team-item"><div class="team-label">Team ID</div><div class="team-value">#BG-2026</div></div>
+      <div class="team-item"><div class="team-label">College</div><div class="team-value">Your College Name</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: PROBLEM -->
+  <section class="slide" id="slide-2">
+    <div style="width:100%;max-width:900px">
+      <span class="tag stagger">The Problem Space</span>
+      <h2 class="section-title stagger">AI Agents Act. Nobody Authorized Them.</h2>
+      <div class="quote-block stagger">
+        <strong>"When something goes wrong, nobody can answer the most basic question:</strong> who authorized that action, and did the agent that ran it actually have the right to? The delegation chain is invisible."
+      </div>
+      <div class="problem-grid stagger">
+        <div class="problem-card">
+          <div class="icon">&#129513;</div>
+          <h3>What is the problem?</h3>
+          <p>AI agents delegate sub-tasks to other agents with no cryptographic proof of authority. Sub-agents inherit implicit trust and can act far beyond their intended scope.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon">&#128101;</div>
+          <h3>Who is affected?</h3>
+          <p>Enterprises deploying multi-agent systems, end-users whose personal data and finances are handled, and developers who can't audit what their systems actually did.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon">&#9889;</div>
+          <h3>Existing solutions?</h3>
+          <p>Role-based access control (RBAC), sandboxing, manual logs. These are static, don't track delegation chains, and are trivially bypassed by an agent with broad context.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon">&#128680;</div>
+          <h3>Key gaps / limitations</h3>
+          <p>No receipts. No scope expiry. No proof-of-authorization. No way to trace a tool call back to the original user intent. Nothing stops a sub-agent from checking out your cart.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: SOLUTION -->
+  <section class="slide" id="slide-3">
+    <div style="width:100%;max-width:900px">
+      <span class="tag stagger">Our Solution</span>
+      <h2 class="section-title stagger">Personal Assistant Swarm + ArmorIQ Governance</h2>
+      <div class="vs-bar stagger">
+        <div class="vs-item vs-before">
+          <span>&#10060; Without AuthorChain</span>
+          Shopping agent calls checkout() with your real card. No one knows who authorized it, when, or why. There's no log. The cart empties.
+        </div>
+        <div class="vs-item vs-after">
+          <span>&#9989; With AuthorChain</span>
+          Shopping agent attempts checkout() &rarr; ArmorIQ SDK blocks it. Scoped token only allows search + add_to_cart. Violation is logged immutably. You stay safe.
+        </div>
+      </div>
+      <div class="solution-grid stagger">
+        <div class="sol-card">
+          <div class="sol-icon">&#9992;&#65039;</div>
+          <h3>Flight Agent</h3>
+          <p>Searches and books flights. Token grants search_flights + book_flight. Expires after task completion.</p>
+        </div>
+        <div class="sol-card">
+          <div class="sol-icon">&#128197;</div>
+          <h3>Calendar Agent</h3>
+          <p>Reads and clears calendar conflicts. Token grants read_events + delete_event. Cannot touch email or contacts.</p>
+        </div>
+        <div class="sol-card">
+          <div class="sol-icon">&#128722;</div>
+          <h3>Shopping Agent</h3>
+          <p>Searches items, fills cart. Token grants search + add_to_cart. <strong style="color:#ff6b6b">Checkout is intentionally blocked.</strong></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: ARCHITECTURE -->
+  <section class="slide" id="slide-4">
+    <div style="width:100%;max-width:900px">
+      <span class="tag stagger">System Design</span>
+      <h2 class="section-title stagger">Architecture + Tech Stack</h2>
+      <div class="arch-flow stagger">
+        <div class="arch-node">
+          <div class="node-icon">&#128100;</div>
+          <div class="node-title">User Intent</div>
+          <div class="node-sub">Natural language task</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node" style="border-color:rgba(108,99,255,0.5);background:rgba(108,99,255,0.08)">
+          <div class="node-icon">&#129302;</div>
+          <div class="node-title">Coordinator Agent</div>
+          <div class="node-sub">capture_plan() + delegate()</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="node-icon">&#128273;</div>
+          <div class="node-title">ArmorIQ SDK</div>
+          <div class="node-sub">Scoped tokens &middot; Keypairs</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node" style="border-color:rgba(0,212,170,0.4);background:rgba(0,212,170,0.06)">
+          <div class="node-icon">&#9889;</div>
+          <div class="node-title">Sub-Agents</div>
+          <div class="node-sub">invoke() + MCP tools</div>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="node-icon">&#128203;</div>
+          <div class="node-title">Audit Trail</div>
+          <div class="node-sub">Cryptographic log</div>
+        </div>
+      </div>
+      <div style="margin-bottom:20px;width:100%;font-size:12px;color:var(--muted)" class="stagger">
+        &#127959;&#65039; <strong style="color:var(--text)">Components:</strong>&nbsp;&nbsp;
+        <span style="color:#a29bff">Frontend</span> &mdash; Streamlit audit dashboard &nbsp;&middot;&nbsp;
+        <span style="color:#00d4aa">Backend</span> &mdash; FastAPI + LangGraph coordinator &nbsp;&middot;&nbsp;
+        <span style="color:#ffd166">AI</span> &mdash; OpenAI GPT-4o &nbsp;&middot;&nbsp;
+        <span style="color:#ff6b6b">Governance</span> &mdash; ArmorIQ SDK &nbsp;&middot;&nbsp;
+        <span style="color:#a8dadc">DB</span> &mdash; SQLite for audit logs
+      </div>
+      <div class="tech-stack-grid stagger">
+        <div class="tech-pill">&#128013; Python 3.12</div>
+        <div class="tech-pill">&#9889; FastAPI</div>
+        <div class="tech-pill">&#128279; LangGraph</div>
+        <div class="tech-pill">&#129504; OpenAI GPT-4o</div>
+        <div class="tech-pill">&#128272; ArmorIQ SDK</div>
+        <div class="tech-pill">&#128295; MCP Servers</div>
+        <div class="tech-pill">&#128202; Streamlit</div>
+        <div class="tech-pill">&#128722; DummyJSON API</div>
+        <div class="tech-pill">&#128197; WorkBench Calendar</div>
+        <div class="tech-pill">&#9992;&#65039; Amadeus API</div>
+        <div class="tech-pill">&#128451; SQLite</div>
+        <div class="tech-pill">&#128051; Docker</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: FEATURES -->
+  <section class="slide" id="slide-5">
+    <div style="width:100%;max-width:900px">
+      <span class="tag stagger">Innovation Highlights</span>
+      <h2 class="section-title stagger">Key Features</h2>
+      <div class="features-list">
+        <div class="feat-row stagger">
+          <div class="feat-num">1</div>
+          <div class="feat-content">
+            <h3>&#128272; Cryptographic Delegation Chain &nbsp;<span class="badge badge-purple" style="font-size:10px">Core Innovation</span></h3>
+            <p>Every sub-agent runs with its own keypair. delegate() issues a scoped, signed token. invoke() enforces it at runtime. Any tool call outside the declared scope is cryptographically blocked and immutably logged.</p>
+          </div>
+        </div>
+        <div class="feat-row stagger">
+          <div class="feat-num">2</div>
+          <div class="feat-content">
+            <h3>&#9203; Expiring Tokens &mdash; Live Demo &nbsp;<span class="badge badge-gold" style="font-size:10px">Bonus Feature</span></h3>
+            <p>Delegation tokens carry a TTL. A shopping agent mid-search loses its token live on stage. The agent becomes powerless after expiry &mdash; no re-delegation, no inherited authority. Proves the system truly enforces, not just reports.</p>
+          </div>
+        </div>
+        <div class="feat-row stagger">
+          <div class="feat-num">3</div>
+          <div class="feat-content">
+            <h3>&#128680; Scope Violation Detection &nbsp;<span class="badge badge-red" style="font-size:10px">Red Team Demo</span></h3>
+            <p>Shopping agent attempts checkout() &mdash; a tool outside its declared plan. ArmorIQ SDK intercepts, records the violation with full chain context (who delegated, when, what scope). The audit trail shows exactly who tried what and was denied.</p>
+          </div>
+        </div>
+        <div class="feat-row stagger">
+          <div class="feat-num">4</div>
+          <div class="feat-content">
+            <h3>&#128203; Full Audit Dashboard &nbsp;<span class="badge badge-teal" style="font-size:10px">Transparency Layer</span></h3>
+            <p>Streamlit-based UI shows the complete delegation graph in real time: which agent ran which tool, under whose authority, at what time, within what declared plan, and whether it was approved or denied. Fully filterable.</p>
+          </div>
+        </div>
+        <div class="feat-row stagger">
+          <div class="feat-num">5</div>
+          <div class="feat-content">
+            <h3>&#129302; Genuine Multi-Agent Coordination &nbsp;<span class="badge badge-purple" style="font-size:10px">Real Utility</span></h3>
+            <p>Coordinator parses user intent, uses capture_plan() to declare intent, then fans work to 3 separate agent processes each with their own MCP server and unique keypair. Real tools doing real work &mdash; not simulation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: IMPACT -->
+  <section class="slide" id="slide-6">
+    <div style="width:100%;max-width:900px">
+      <span class="tag stagger">Real-World Value</span>
+      <h2 class="section-title stagger">Impact + Feasibility</h2>
+      <div class="stat-row stagger">
+        <div class="stat-box">
+          <div class="stat-val">100%</div>
+          <div class="stat-lbl">Tool calls traceable to user intent</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">0</div>
+          <div class="stat-lbl">Implicit trust assumptions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">3+</div>
+          <div class="stat-lbl">Independent agent processes with keypairs</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">&#8734;</div>
+          <div class="stat-lbl">Agents supportable by design</div>
+        </div>
+      </div>
+      <div class="impact-grid stagger">
+        <div class="impact-card">
+          <div class="imp-icon">&#127970;</div>
+          <h3>Who Benefits</h3>
+          <p>Enterprise teams deploying autonomous agents, personal users delegating AI assistants access to sensitive accounts, and compliance teams who need a full audit trail of every AI action.</p>
+        </div>
+        <div class="impact-card">
+          <div class="imp-icon">&#127758;</div>
+          <h3>Real-World Impact</h3>
+          <p>Prevents AI agent over-reach in financial, healthcare, and enterprise contexts. Creates a trust layer that makes multi-agent AI deployable in regulated industries where accountability is mandatory.</p>
+        </div>
+        <div class="impact-card">
+          <div class="imp-icon">&#128200;</div>
+          <h3>Scalability</h3>
+          <p>ArmorIQ's token model is stateless &mdash; scales horizontally. Adding a new agent means: register keypair + declare scope. No centralized bottleneck. Works for 3 agents or 3,000 agents.</p>
+        </div>
+        <div class="impact-card">
+          <div class="imp-icon">&#128176;</div>
+          <h3>Cost / Deployment</h3>
+          <p>Built on open tools: Python, Docker, zero-signup APIs (DummyJSON, arXiv). ArmorIQ SDK is the only proprietary dependency. Runs locally or on any cloud. Swap mock APIs for production when ready.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: DEMO + CONCLUSION -->
+  <section class="slide" id="slide-7">
+    <div style="width:100%;max-width:900px">
+      <span class="tag stagger">Live Demo + Closing</span>
+      <h2 class="section-title stagger">Demo + Conclusion</h2>
+      <div class="demo-grid stagger">
+        <div class="demo-screen">
+          <div class="ds-title">&#9989; Happy Path &mdash; Coordinator Delegates</div>
+          <div class="ln-info">[coordinator] capture_plan(): BOOK_FLIGHT + CLEAR_CALENDAR + REORDER</div>
+          <div class="ln-ok">[coord] delegate(flight_agent, scope=["search_flights","book_flight"], ttl=300s) OK</div>
+          <div class="ln-ok">[flight_agent] invoke() &rarr; search_flights("BOM&rarr;DEL") OK</div>
+          <div class="ln-ok">[flight_agent] invoke() &rarr; book_flight(id="AI302") OK</div>
+          <div class="ln-ok">[calendar_agent] invoke() &rarr; delete_event("Thursday 3pm") OK</div>
+          <div class="ln-ok">[shopping_agent] invoke() &rarr; search("Sony headphones") OK</div>
+          <div class="ln-ok">[shopping_agent] invoke() &rarr; add_to_cart(item_id=42) OK</div>
+          <div class="ln-gray">-------------------------------------</div>
+          <div class="ln-ok">All 6 actions: AUTHORIZED and LOGGED</div>
+        </div>
+        <div class="demo-screen">
+          <div class="ds-title">&#128680; Violation + Token Expiry Demo</div>
+          <div class="ln-warn">[shopping_agent] invoke() &rarr; checkout(cart="C99") ...</div>
+          <div class="ln-err">  SCOPE VIOLATION: 'checkout' not in declared plan</div>
+          <div class="ln-err">  Delegated by: coordinator | TTL: 300s</div>
+          <div class="ln-err">  Action BLOCKED. Logged immutably.</div>
+          <div class="ln-gray">-------------------------------------</div>
+          <div class="ln-warn">[shopping_agent] Token TTL expired after 300s...</div>
+          <div class="ln-err">[shopping_agent] invoke() &rarr; search("cables") ...</div>
+          <div class="ln-err">  TOKEN EXPIRED: Delegation no longer valid</div>
+          <div class="ln-err">  Agent is now powerless. Re-delegation required.</div>
+          <div class="ln-gray">-------------------------------------</div>
+          <div class="ln-ok">Full chain of custody in audit trail</div>
+        </div>
+      </div>
+      <div class="conclusion-box stagger">
+        &#128272; <strong>AuthorChain</strong> proves that powerful multi-agent AI systems don't have to be unaccountable.<br/>
+        <span class="cta">Every action is scoped, every delegation is signed, every violation is caught.</span><br/>
+        <span style="font-size:14px;color:var(--muted);font-weight:400">Select us because we didn't just make the pipeline work &mdash; we made it <em>impossible to abuse</em>.</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('nav-dots');
+  const progressBar = document.getElementById('progress-bar');
+  const curSlideEl = document.getElementById('cur-slide');
+  const total = slides.length;
+
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    const prev = current;
+    setTimeout(() => slides[prev].classList.remove('exit'), 600);
+    current = n;
+    slides[current].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    progressBar.style.width = ((current + 1) / total * 100) + '%';
+    curSlideEl.textContent = current + 1;
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     changeSlide(-1);
+  });
+
+  progressBar.style.width = (1 / total * 100) + '%';
+
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) changeSlide(dx < 0 ? 1 : -1);
+  });
+</script>
+</body>
+</html>
