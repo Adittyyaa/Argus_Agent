@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # MCP Servers (Mock Tool Servers)
+  flight-mcp:
+    build: .
+    command: python mcp_servers/flight_mcp.py
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - argus-net
+
+  calendar-mcp:
+    build: .
+    command: python mcp_servers/calendar_mcp.py
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - argus-net
+
+  shopping-mcp:
+    build: .
+    command: python mcp_servers/shopping_mcp.py
+    ports:
+      - "8003:8003"
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - argus-net
+
+  # Main Coordinator Service
+  coordinator:
+    build: .
+    command: python coordinator/main.py
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ARMORIQ_MODE=mock
+      - ARGUS_DB=/app/data/audit.db
+      - ARMORIQ_SHARED_SECRET=argus-demo-secret-2026
+    volumes:
+      - audit_data:/app/data
+    depends_on:
+      flight-mcp:
+        condition: service_healthy
+      calendar-mcp:
+        condition: service_healthy
+      shopping-mcp:
+        condition: service_healthy
+    networks:
+      - argus-net
+    restart: unless-stopped
+
+  # Dashboard Service
+  dashboard:
+    build: .
+    command: streamlit run dashboard/app.py --server.headless true --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ARGUS_DB=/app/data/audit.db
+    volumes:
+      - audit_data:/app/data
+    depends_on:
+      - coordinator
+    networks:
+      - argus-net
+    restart: unless-stopped
+
+# Named volume for persistent audit data
+volumes:
+  audit_data:
+    driver: local
+
+# Custom network
+networks:
+  argus-net:
+    driver: bridge
