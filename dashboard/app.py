@@ -100,6 +100,15 @@ st.markdown("""
         color: #94a3b8;
         line-height: 1.45;
     }
+    .hero .hero-list {
+        margin: 1rem 0 0;
+        padding-left: 1.1rem;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+    .hero .hero-list li { margin-bottom: 0.15rem; }
+    .hero .hero-list b { color: #a5b4fc; }
     .hero .pill {
         display: inline-block;
         margin-top: 0.85rem;
@@ -227,6 +236,12 @@ st.markdown("""
     <p><b>What it does:</b> Argus coordinates AI agents and issues each one a scoped,
        cryptographically-signed token &mdash; so agents can only run approved tools,
        actions are enforced in real time, and every decision is logged and auditable.</p>
+    <ul class="hero-list">
+        <li><b>Plan</b> &mdash; the Coordinator records user intent before any agent acts.</li>
+        <li><b>Delegate</b> &mdash; each sub-agent gets a short-lived, scoped HMAC token (least privilege).</li>
+        <li><b>Enforce</b> &mdash; every tool call is verified for scope, signature, and expiry before execution.</li>
+        <li><b>Audit</b> &mdash; a tamper-evident log records every ALLOWED, BLOCKED, and EXPIRED decision.</li>
+    </ul>
     <p class="hero-sub">A Personal Assistant Swarm protected by cryptographic intent
        verification via the <b>ArmorIQ SDK</b> &mdash; every agent action is scoped, signed, and audited.</p>
     <span class="pill">Zero-Trust Multi-Agent Governance</span>
