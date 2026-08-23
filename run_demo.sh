@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "========================================================="
-echo "🚀 STARTING AUTHORCHAIN HACKATHON DEMO"
+echo "🚀 STARTING ARGUS HACKATHON DEMO"
 echo "========================================================="
 
 # 1. Kill any existing processes on our ports
@@ -19,7 +19,7 @@ MCP3_PID=$!
 
 # 3. Start Streamlit Dashboard in the background
 echo "[3/4] Starting Streamlit Audit Dashboard (Port 8501)..."
-streamlit run dashboard/app.py --server.headless true > /dev/null 2>&1 &
+python3 -m streamlit run dashboard/app.py --server.headless true --browser.gatherUsageStats false > /dev/null 2>&1 &
 DASH_PID=$!
 
 echo "⏳ Waiting for servers to initialize..."
