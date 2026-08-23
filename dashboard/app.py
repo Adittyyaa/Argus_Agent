@@ -161,17 +161,26 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] {
         background: #0e1422;
         border-radius: 12px;
-        padding: 4px;
+        padding: 5px;
         border: 1px solid rgba(148,163,184,0.12);
+        gap: 6px;
+        display: flex;
     }
     .stTabs [data-baseweb="tab"] {
+        flex: 1 1 0;
+        justify-content: center;
         border-radius: 9px;
         color: #94a3b8;
         font-weight: 500;
+        transition: all 0.15s ease;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #e2e8f0;
+        background: rgba(148,163,184,0.06);
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #4f46e5, #6366f1);
-        color: #ffffff;
+        background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+        color: #ffffff !important;
     }
 
     .stDataFrame { border-radius: 12px; }
