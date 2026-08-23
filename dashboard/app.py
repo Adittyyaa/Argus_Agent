@@ -20,20 +20,143 @@ from mock_armoriq.client import ArmorIQClient
 # Page Config
 st.set_page_config(
     page_title="Argus – ArmorIQ Personal Assistant Swarm",
-    page_icon="🛡️",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# Custom Styling — Professional Theme
 st.markdown("""
 <style>
-    .main .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
-    .stMetric { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px 18px; border-radius: 12px; }
-    .status-allowed { color: #00d4aa; font-weight: 600; }
-    .status-blocked { color: #ff6b6b; font-weight: 600; }
-    .status-expired { color: #ffd166; font-weight: 600; }
-    .terminal-box { font-family: 'JetBrains Mono', monospace; background: #050810; border: 1px solid rgba(108,99,255,0.3); padding: 15px; border-radius: 10px; color: #a29bff; line-height: 1.6; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    html, body, .stApp {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background-color: #0b0f1a;
+    }
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1400px;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #0e1422;
+        border-right: 1px solid rgba(148,163,184,0.12);
+    }
+
+    /* Metrics cards */
+    .stMetric {
+        background: linear-gradient(180deg, #131b2e 0%, #0f1626 100%);
+        border: 1px solid rgba(148,163,184,0.14);
+        padding: 18px 22px;
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+    .stMetric > div:first-child { color: #94a3b8; font-size: 0.82rem; letter-spacing: 0.02em; }
+    .stMetric > div:nth-child(2) { color: #f1f5f9; font-weight: 700; }
+
+    /* Hero banner */
+    .hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #312e81 100%);
+        border: 1px solid rgba(99,102,241,0.28);
+        border-radius: 18px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.40);
+    }
+    .hero h1 {
+        margin: 0;
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: #f8fafc;
+        letter-spacing: -0.01em;
+    }
+    .hero .accent { color: #818cf8; }
+    .hero p {
+        margin: 0.5rem 0 0;
+        color: #cbd5e1;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    .hero .pill {
+        display: inline-block;
+        margin-top: 0.85rem;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #a5b4fc;
+        background: rgba(99,102,241,0.14);
+        border: 1px solid rgba(99,102,241,0.35);
+        border-radius: 999px;
+    }
+
+    /* Section headings */
+    .section-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Status colors */
+    .status-allowed { color: #34d399; font-weight: 600; }
+    .status-blocked { color: #f87171; font-weight: 600; }
+    .status-expired { color: #fbbf24; font-weight: 600; }
+
+    /* Terminal box */
+    .terminal-box {
+        font-family: 'JetBrains Mono', monospace;
+        background: #050810;
+        border: 1px solid rgba(99,102,241,0.30);
+        padding: 16px;
+        border-radius: 12px;
+        color: #a5b4fc;
+        line-height: 1.6;
+        font-size: 0.85rem;
+    }
+
+    /* Info / architecture cards */
+    .info-card {
+        background: #0f1626;
+        border: 1px solid rgba(148,163,184,0.14);
+        border-radius: 14px;
+        padding: 1.1rem 1.25rem;
+        height: 100%;
+    }
+    .info-card h4 {
+        margin: 0 0 0.6rem;
+        font-size: 0.95rem;
+        color: #e2e8f0;
+        font-weight: 600;
+    }
+    .info-card ul { margin: 0; padding-left: 1.1rem; color: #cbd5e1; font-size: 0.86rem; line-height: 1.55; }
+    .info-card li { margin-bottom: 0.35rem; }
+    .info-card li b { color: #a5b4fc; }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background: #0e1422;
+        border-radius: 12px;
+        padding: 4px;
+        border: 1px solid rgba(148,163,184,0.12);
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 9px;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: #ffffff;
+    }
+
+    .stDataFrame { border-radius: 12px; }
+    div[data-testid="stExpander"] {
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 12px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -41,7 +164,6 @@ logger = AuditLogger()
 
 # ── Sidebar Configuration ──
 with st.sidebar:
-    st.image("https://img.icons8.com/isometric-folders/100/security-shield.png", width=64)
     st.title("Argus GUI")
     st.caption("Cryptographic Multi-Agent Governance")
     
@@ -52,15 +174,15 @@ with st.sidebar:
     mode = os.getenv("ARMORIQ_MODE", "mock").strip().lower()
     
     if api_key and api_key.startswith("ak_"):
-        st.success("🔒 **ArmorIQ Cloud API Connected**")
+        st.success("ArmorIQ Cloud API Connected")
         st.caption(f"**Endpoint:** `platform.armoriq.ai`  \n**Key:** `{api_key[:10]}...{api_key[-4:]}`")
     else:
-        st.info("⚡ **ArmorIQ Local Mock Mode**")
+        st.info("ArmorIQ Local Mock Mode")
         st.caption("Running local HMAC verification.")
         
     st.divider()
     
-    st.subheader("⚙️ Quick Settings")
+    st.subheader("Quick Settings")
     auto_refresh = st.checkbox("Auto-refresh Audit Trail (3s)", value=False)
     
     if auto_refresh:
@@ -68,18 +190,21 @@ with st.sidebar:
         st.rerun()
 
 # ── Main Header ──
-st.title("🛡️ Argus Control Center & Audit Dashboard")
-st.markdown(
-    "A Personal Assistant Swarm protected by cryptographic intent verification via the **ArmorIQ SDK**."
-)
+st.markdown("""
+<div class="hero">
+    <h1>Argus <span class="accent">Control Center</span> &amp; Audit Dashboard</h1>
+    <p>A Personal Assistant Swarm protected by cryptographic intent verification
+       via the <b>ArmorIQ SDK</b> &mdash; every agent action is scoped, signed, and audited.</p>
+    <span class="pill">Zero-Trust Multi-Agent Governance</span>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Tabs ──
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Real-Time Audit Trail",
-    "🚀 Run Swarm Demo", 
-    "🎮 Custom Agent Control",
-    "🛡️ Red-Team Attack Simulator",
-    "📈 Hackathon Slides & Architecture"
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Real-Time Audit Trail",
+    "Run Swarm Demo",
+    "Custom Agent Control",
+    "Red-Team Attack Simulator"
 ])
 
 # ── TAB 1: Real-Time Audit Trail ──
@@ -87,11 +212,11 @@ with tab1:
     stats = logger.get_stats()
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Total Tool Invocations", stats["total"])
-    c2.metric("✅ Authorized", stats["allowed"])
-    c3.metric("❌ Blocked (Scope Violation)", stats["blocked"])
-    c4.metric("⚠️ Expired (TTL Timeout)", stats["expired"])
+    c2.metric("Authorized", stats["allowed"])
+    c3.metric("Blocked (Scope Violation)", stats["blocked"])
+    c4.metric("Expired (TTL Timeout)", stats["expired"])
 
-    st.subheader("📜 Live Invocations Log")
+    st.subheader("Live Invocations Log")
     invocations = logger.get_invocations()
 
     if invocations:
@@ -127,7 +252,7 @@ with tab1:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("📌 Captured Plans (capture_plan)")
+        st.subheader("Captured Plans (capture_plan)")
         plans = logger.get_plans()
         if plans:
             st.dataframe(pd.DataFrame(plans)[["plan_id", "description", "declared_tools", "user_email"]], use_container_width=True, hide_index=True)
@@ -135,7 +260,7 @@ with tab1:
             st.caption("No plans recorded.")
 
     with col2:
-        st.subheader("🔑 Issued Delegation Tokens (delegate)")
+        st.subheader("Issued Delegation Tokens (delegate)")
         dels = logger.get_delegations()
         if dels:
             st.dataframe(pd.DataFrame(dels)[["delegation_id", "agent_id", "scope", "ttl_seconds", "issued_by"]], use_container_width=True, hide_index=True)
@@ -145,7 +270,7 @@ with tab1:
 
 # ── TAB 2: Run Swarm Demo ──
 with tab2:
-    st.subheader("🚀 Execute Swarm Demo from GUI")
+    st.subheader("Execute Swarm Demo from GUI")
     st.markdown("Run the full multi-agent workflow: Coordinator -> Flight Agent -> Calendar Agent -> Shopping Agent.")
     
     col_input, col_ttl = st.columns([3, 1])
@@ -154,7 +279,7 @@ with tab2:
     with col_ttl:
         shopping_ttl_setting = st.slider("Shopping Agent TTL (sec)", min_value=2, max_value=30, value=10)
 
-    if st.button("▶️ Launch Multi-Agent Swarm Demo", type="primary"):
+    if st.button("Launch Multi-Agent Swarm Demo", type="primary"):
         os.environ["SHOPPING_AGENT_TTL"] = str(shopping_ttl_setting)
         
         with st.spinner("Executing Swarm Coordinator & Sub-Agents..."):
@@ -169,50 +294,50 @@ with tab2:
                 env={**os.environ, "PYTHONUNBUFFERED": "1"}
             )
             
-            st.markdown("### 🖥️ Swarm Live Terminal Execution Log")
+            st.markdown("### Swarm Live Terminal Execution Log")
             st.code(result.stdout, language="bash")
             if result.stderr:
                 st.warning("Errors/Warnings:")
                 st.code(result.stderr, language="bash")
                 
-        st.success("✅ Demo Completed! Check the **Real-Time Audit Trail** tab to view updated logs.")
+        st.success("Demo Completed! Check the **Real-Time Audit Trail** tab to view updated logs.")
         st.rerun()
 
 
 # ── TAB 3: Custom Agent Control ──
 with tab3:
-    st.subheader("🎮 Custom Agent Control Panel")
+    st.subheader("Custom Agent Control Panel")
     st.markdown("**Interactive GUI to control individual agents with custom commands and permissions**")
     
     # Quick Start Demo
-    with st.expander("🚀 Quick Start Demo Examples", expanded=False):
+    with st.expander("Quick Start Demo Examples", expanded=False):
         st.markdown("""
         **Try these example scenarios:**
         
-        1. **🛫 Basic Travel Planning:**
+        1. **Basic Travel Planning:**
            - Intent: *"Book me a flight to Paris and clear my schedule"*
            - Give flight agent: `search_flights`, `book_flight`
            - Give calendar agent: `read_events`, `delete_event`
         
-        2. **🛒 Shopping with Security Test:**
+        2. **Shopping with Security Test:**
            - Intent: *"Find and buy headphones under $100"*
            - Give shopping agent: `search_items`, `add_to_cart` (but NOT `checkout`)
-           - Enable "🚨 Test Scope Violation" to see security enforcement
+           - Enable "Test Scope Violation" to see security enforcement
         
-        3. **🔒 Full Permissions Test:**
+        3. **Full Permissions Test:**
            - Intent: *"Complete travel and shopping for business trip"*
            - Give all agents full permissions and see the difference
            
-        4. **⏰ Token Expiry Demo:**
+        4. **Token Expiry Demo:**
            - Set shopping agent TTL to 5 seconds
-           - Enable "⏰ Test Token Expiry" 
+           - Enable "Test Token Expiry" 
            - Watch tokens expire and get rejected
         """)
     
     st.divider()
     
     # Custom User Intent
-    st.markdown("### 📝 Custom User Intent")
+    st.markdown("### Custom User Intent")
     col_intent, col_user = st.columns([3, 1])
     with col_intent:
         custom_prompt = st.text_area(
@@ -225,7 +350,7 @@ with tab3:
         user_email = st.text_input("User Email:", value="demo@company.com")
     
     # Available Tools Configuration
-    st.markdown("### 🛠️ Available Tools Configuration")
+    st.markdown("### Available Tools Configuration")
     st.caption("Select which tools are available in the system (this sets the global tool scope)")
     
     available_tools = st.multiselect(
@@ -242,7 +367,7 @@ with tab3:
     )
     
     # Individual Agent Configuration
-    st.markdown("### 🤖 Individual Agent Configuration")
+    st.markdown("### Individual Agent Configuration")
     
     # Flight Agent
     with st.expander("✈️ Flight Agent Configuration", expanded=True):
@@ -446,28 +571,31 @@ with tab4:
         st.rerun()
 
 
-# ── TAB 5: Hackathon Slides & Architecture ──
-with tab5:
-    st.subheader("📜 Argus Architecture & Hackathon Presentation")
-    
-    col_a, col_b = st.columns([1, 1])
-    with col_a:
+# ── Architecture & Security Model (main page) ──
+with st.expander("Architecture & Security Model", expanded=False):
+    st.markdown('<div class="section-title">How Argus enforces zero-trust governance</div>', unsafe_allow_html=True)
+    arch_c1, arch_c2 = st.columns([1, 1])
+    with arch_c1:
         st.markdown("""
-        ### 🔑 Key Innovations
-        1. **Cryptographic Delegation Chain**: Scoped, signed HMAC tokens per sub-agent keypair.
-        2. **Runtime Enforcement (`invoke`)**: Cryptographically validates tool name, TTL, and signature before reaching MCP servers.
-        3. **ArmorIQ Cloud Integration**: Integrates directly with `platform.armoriq.ai` to issue Merkle step proof tokens.
-        4. **Zero-Trust Audit Trail**: Immutable SQLite database recording every `ALLOWED`, `BLOCKED`, and `EXPIRED` decision.
-        """)
-        
-    with col_b:
+        <div class="info-card">
+            <h4>Key Innovations</h4>
+            <ul>
+                <li><b>Cryptographic Delegation Chain</b> &mdash; scoped, signed HMAC tokens per sub-agent keypair.</li>
+                <li><b>Runtime Enforcement (<code>invoke</code>)</b> &mdash; cryptographically validates tool name, TTL, and signature before reaching MCP servers.</li>
+                <li><b>ArmorIQ Cloud Integration</b> &mdash; issues Merkle step proof tokens via <code>platform.armoriq.ai</code>.</li>
+                <li><b>Zero-Trust Audit Trail</b> &mdash; immutable SQLite database recording every <code>ALLOWED</code>, <code>BLOCKED</code>, and <code>EXPIRED</code> decision.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    with arch_c2:
         st.markdown("""
-        ### 🛠️ Technology Stack
-        * **Governance**: ArmorIQ SDK (`armoriq-sdk`)
-        * **Backend**: Python 3.13 + FastAPI + Uvicorn
-        * **Audit Layer**: SQLite WAL Multi-Process DB + Streamlit
-        * **Tool Servers**: Mock HTTP MCP Servers (Ports 8001, 8002, 8003)
-        """)
-
-    st.divider()
-    st.info("💡 To view the full animated 7-slide Hackathon Presentation, open `presentation.html` in your browser.")
+        <div class="info-card">
+            <h4>Technology Stack</h4>
+            <ul>
+                <li><b>Governance</b> &mdash; ArmorIQ SDK (<code>armoriq-sdk</code>)</li>
+                <li><b>Backend</b> &mdash; Python 3.13 + FastAPI + Uvicorn</li>
+                <li><b>Audit Layer</b> &mdash; SQLite WAL multi-process DB + Streamlit</li>
+                <li><b>Tool Servers</b> &mdash; Mock HTTP MCP servers (ports 8001, 8002, 8003)</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)

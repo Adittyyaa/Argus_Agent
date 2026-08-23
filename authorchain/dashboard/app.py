@@ -253,4 +253,4 @@ with tab4:
         """)
 
     st.divider()
-    st.info("💡 To view the full animated 7-slide Hackathon Presentation, open `presentation.html` in your browser.")
+    st.info("💡 Key innovations: cryptographic delegation chain, runtime enforcement via `invoke`, ArmorIQ Cloud proofs, and a zero-trust immutable audit trail.")
