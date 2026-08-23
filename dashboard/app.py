@@ -45,15 +45,31 @@ st.markdown("""
     }
 
     /* Metrics cards */
-    .stMetric {
+    [data-testid="stMetric"] {
         background: linear-gradient(180deg, #131b2e 0%, #0f1626 100%);
         border: 1px solid rgba(148,163,184,0.14);
         padding: 18px 22px;
         border-radius: 14px;
         box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        height: 100%;
+        width: 100%;
     }
-    .stMetric > div:first-child { color: #94a3b8; font-size: 0.82rem; letter-spacing: 0.02em; }
-    .stMetric > div:nth-child(2) { color: #f1f5f9; font-weight: 700; }
+    [data-testid="stMetricLabel"] {
+        color: #94a3b8;
+        font-size: 0.82rem;
+        letter-spacing: 0.02em;
+    }
+    [data-testid="stMetricValue"] {
+        color: #f1f5f9;
+        font-weight: 700;
+    }
+    /* Keep metric columns equal height & aligned */
+    div[data-testid="stHorizontalBlock"] {
+        align-items: stretch;
+        gap: 1rem;
+    }
+    div[data-testid="stHorizontalBlock"] .element-container { height: 100%; }
+    .metrics-row { margin-bottom: 1.75rem; }
 
     /* Hero banner */
     .hero {
@@ -77,6 +93,12 @@ st.markdown("""
         color: #cbd5e1;
         font-size: 0.95rem;
         line-height: 1.5;
+    }
+    .hero .hero-sub {
+        margin-top: 0.9rem;
+        font-size: 0.82rem;
+        color: #94a3b8;
+        line-height: 1.45;
     }
     .hero .pill {
         display: inline-block;
@@ -193,11 +215,24 @@ with st.sidebar:
 st.markdown("""
 <div class="hero">
     <h1>Argus <span class="accent">Control Center</span> &amp; Audit Dashboard</h1>
-    <p>A Personal Assistant Swarm protected by cryptographic intent verification
-       via the <b>ArmorIQ SDK</b> &mdash; every agent action is scoped, signed, and audited.</p>
+    <p><b>What it does:</b> Argus coordinates AI agents and issues each one a scoped,
+       cryptographically-signed token &mdash; so agents can only run approved tools,
+       actions are enforced in real time, and every decision is logged and auditable.</p>
+    <p class="hero-sub">A Personal Assistant Swarm protected by cryptographic intent
+       verification via the <b>ArmorIQ SDK</b> &mdash; every agent action is scoped, signed, and audited.</p>
     <span class="pill">Zero-Trust Multi-Agent Governance</span>
 </div>
 """, unsafe_allow_html=True)
+
+# ── Top Metrics Row (always visible) ──
+stats = logger.get_stats()
+st.markdown('<div class="metrics-row">', unsafe_allow_html=True)
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Total Tool Invocations", stats["total"])
+c2.metric("Authorized", stats["allowed"])
+c3.metric("Blocked (Scope Violation)", stats["blocked"])
+c4.metric("Expired (TTL Timeout)", stats["expired"])
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Tabs ──
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -209,13 +244,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 # ── TAB 1: Real-Time Audit Trail ──
 with tab1:
-    stats = logger.get_stats()
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Tool Invocations", stats["total"])
-    c2.metric("Authorized", stats["allowed"])
-    c3.metric("Blocked (Scope Violation)", stats["blocked"])
-    c4.metric("Expired (TTL Timeout)", stats["expired"])
-
     st.subheader("Live Invocations Log")
     invocations = logger.get_invocations()
 
