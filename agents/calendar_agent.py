@@ -18,14 +18,14 @@ def execute_tool(tool_name: str, args: dict) -> dict:
     return resp.json()
 
 def main():
-    print("📅 [Calendar Agent] Booting up...")
+    print("[Calendar Agent] Booting up...")
     agent_client = ArmorIQClient(agent_id="agent-calendar-002")
     
     try:
         with open("tokens.json", "r") as f:
             my_token = json.load(f)["calendar_agent"]
     except Exception as e:
-        print("❌ [Calendar Agent] Error reading token:", e)
+        print("[Calendar Agent] Error reading token:", e)
         return
 
     try:

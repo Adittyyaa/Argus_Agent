@@ -42,7 +42,7 @@ def get_mcp_port(tool_name: str) -> int:
 def execute_agent_scenario(agent_name: str, config: Dict[str, Any], token: str, client: ArmorIQClient):
     """Execute a specific agent scenario based on GUI configuration"""
     print(f"\n{'='*60}")
-    print(f"🤖 Executing {agent_name.upper()} Agent")
+    print(f"Executing {agent_name.upper()} Agent")
     print(f"{'='*60}")
     
     agent_config = config["agents"][agent_name]
@@ -50,11 +50,11 @@ def execute_agent_scenario(agent_name: str, config: Dict[str, Any], token: str, 
     args = agent_config["args"]
     
     if not scope:
-        print(f"⚠️  [{agent_name.title()} Agent] No permissions granted - skipping")
+        print(f"[{agent_name.title()} Agent] No permissions granted - skipping")
         return
     
-    print(f"🔑 [{agent_name.title()} Agent] Authorized tools: {scope}")
-    print(f"⏰ [{agent_name.title()} Agent] TTL: {agent_config['ttl']} seconds")
+    print(f"[{agent_name.title()} Agent] Authorized tools: {scope}")
+    print(f"[{agent_name.title()} Agent] TTL: {agent_config['ttl']} seconds")
     
     # Execute authorized operations
     for tool in scope:
@@ -62,7 +62,7 @@ def execute_agent_scenario(agent_name: str, config: Dict[str, Any], token: str, 
             # Prepare tool arguments based on agent type and GUI inputs
             tool_args = prepare_tool_args(agent_name, tool, args)
             
-            print(f"🔧 [{agent_name.title()} Agent] Attempting: {tool}")
+            print(f"[{agent_name.title()} Agent] Attempting: {tool}")
             
             # Execute the tool
             result = client.invoke(
@@ -72,19 +72,19 @@ def execute_agent_scenario(agent_name: str, config: Dict[str, Any], token: str, 
                 execute_fn=lambda t, a: execute_tool(t, a, get_mcp_port(t))
             )
             
-            print(f"✅ [{agent_name.title()} Agent] {tool} succeeded")
+            print(f"[{agent_name.title()} Agent] {tool} succeeded")
             
         except PermissionError as e:
-            print(f"🚫 [{agent_name.title()} Agent] {tool} blocked: {e}")
+            print(f"[{agent_name.title()} Agent] {tool} blocked: {e}")
         except Exception as e:
-            print(f"❌ [{agent_name.title()} Agent] {tool} error: {e}")
+            print(f"[{agent_name.title()} Agent] {tool} error: {e}")
     
     # Security testing scenarios
     security_config = config["security_tests"]
     
     # Test scope violation
     if security_config.get("scope_violation") and agent_name == "shopping":
-        print(f"\n🚨 [{agent_name.title()} Agent] SECURITY TEST: Attempting unauthorized 'checkout'")
+        print(f"\n[{agent_name.title()} Agent] SECURITY TEST: Attempting unauthorized 'checkout'")
         try:
             client.invoke(
                 token=token,
@@ -92,14 +92,14 @@ def execute_agent_scenario(agent_name: str, config: Dict[str, Any], token: str, 
                 args={"cart_id": "test-cart"},
                 execute_fn=lambda t, a: execute_tool(t, a, 8003)
             )
-            print(f"❌ [{agent_name.title()} Agent] Security test FAILED - unauthorized operation succeeded!")
+            print(f"[{agent_name.title()} Agent] Security test FAILED - unauthorized operation succeeded!")
         except PermissionError as e:
-            print(f"✅ [{agent_name.title()} Agent] Security test PASSED - unauthorized operation blocked: {e}")
+            print(f"[{agent_name.title()} Agent] Security test PASSED - unauthorized operation blocked: {e}")
     
     # Test token expiry
     if security_config.get("token_expiry") and agent_name == "shopping":
         ttl = agent_config["ttl"]
-        print(f"\n⏰ [{agent_name.title()} Agent] SECURITY TEST: Waiting {ttl + 2} seconds for token expiry")
+        print(f"\n[{agent_name.title()} Agent] SECURITY TEST: Waiting {ttl + 2} seconds for token expiry")
         time.sleep(ttl + 2)
         
         try:
@@ -109,9 +109,9 @@ def execute_agent_scenario(agent_name: str, config: Dict[str, Any], token: str, 
                 args={},
                 execute_fn=lambda t, a: execute_tool(t, a, get_mcp_port(t))
             )
-            print(f"❌ [{agent_name.title()} Agent] Expiry test FAILED - expired token still works!")
+            print(f"[{agent_name.title()} Agent] Expiry test FAILED - expired token still works!")
         except PermissionError as e:
-            print(f"✅ [{agent_name.title()} Agent] Expiry test PASSED - expired token rejected: {e}")
+            print(f"[{agent_name.title()} Agent] Expiry test PASSED - expired token rejected: {e}")
 
 def prepare_tool_args(agent_name: str, tool_name: str, gui_args: Dict[str, Any]) -> Dict[str, Any]:
     """Prepare tool arguments based on agent type and GUI inputs"""
@@ -156,19 +156,19 @@ def main():
     # Load custom configuration from GUI
     config_path = "custom_config.json"
     if not os.path.exists(config_path):
-        print("❌ No custom configuration found. Use the GUI to create a scenario.")
+        print("No custom configuration found. Use the GUI to create a scenario.")
         return
     
     with open(config_path, "r") as f:
         config = json.load(f)
     
-    print("🎮" + "="*60)
-    print("🎮 ARGUS CUSTOM AGENT CONTROL SYSTEM")
-    print("🎮" + "="*60)
-    print(f"👤 USER INTENT: \"{config['user_intent']}\"")
-    print(f"👤 USER EMAIL: {config['user_email']}")
-    print(f"🛠️  AVAILABLE TOOLS: {', '.join(config['available_tools'])}")
-    print("🎮" + "="*60)
+    print("="*60)
+    print("ARGUS CUSTOM AGENT CONTROL SYSTEM")
+    print("="*60)
+    print(f"USER INTENT: \"{config['user_intent']}\"")
+    print(f"USER EMAIL: {config['user_email']}")
+    print(f"AVAILABLE TOOLS: {', '.join(config['available_tools'])}")
+    print("="*60)
     
     # Initialize coordinator
     client = ArmorIQClient(agent_id="coordinator-gui")
@@ -194,9 +194,9 @@ def main():
                 ttl_seconds=agent_config["ttl"]
             )
             
-            print(f"🔑 Created token for {agent_name} agent: {agent_config['scope']} (TTL: {agent_config['ttl']}s)")
+            print(f"Created token for {agent_name} agent: {agent_config['scope']} (TTL: {agent_config['ttl']}s)")
     
-    print(f"\n🚀 Executing {len(tokens)} configured agents...\n")
+    print(f"\nExecuting {len(tokens)} configured agents...\n")
     
     # Execute each agent scenario
     for agent_name, token in tokens.items():
@@ -206,11 +206,11 @@ def main():
         # Small delay between agents for clearer output
         time.sleep(1)
     
-    print("\n🎮" + "="*60)
-    print("✅ CUSTOM SCENARIO EXECUTION COMPLETE!")
-    print("🎮" + "="*60)
-    print("📊 Check the 'Real-Time Audit Trail' tab in the GUI to see all operations")
-    print("🎮" + "="*60)
+    print("\n" + "="*60)
+    print("CUSTOM SCENARIO EXECUTION COMPLETE!")
+    print("="*60)
+    print("Check the 'Real-Time Audit Trail' tab in the GUI to see all operations")
+    print("="*60)
 
 if __name__ == "__main__":
     main()

@@ -19,7 +19,7 @@ def execute_tool(tool_name: str, args: dict) -> dict:
     return resp.json()
 
 def main():
-    print("✈️  [Flight Agent] Booting up...")
+    print("[Flight Agent] Booting up...")
     
     # 1. Initialize its own client with its own keypair
     agent_client = ArmorIQClient(agent_id="agent-flight-001")
@@ -30,7 +30,7 @@ def main():
             tokens = json.load(f)
             my_token = tokens["flight_agent"]
     except Exception as e:
-        print("❌ [Flight Agent] Error reading token:", e)
+        print("[Flight Agent] Error reading token:", e)
         return
 
     # 3. Perform work using SDK invoke()

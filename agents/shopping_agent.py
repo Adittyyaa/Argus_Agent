@@ -20,14 +20,14 @@ def execute_tool(tool_name: str, args: dict) -> dict:
     return resp.json()
 
 def main():
-    print("🛒 [Shopping Agent] Booting up...")
+    print("[Shopping Agent] Booting up...")
     agent_client = ArmorIQClient(agent_id="agent-shopping-003")
     
     try:
         with open("tokens.json", "r") as f:
             my_token = json.load(f)["shopping_agent"]
     except Exception as e:
-        print("❌ [Shopping Agent] Error reading token:", e)
+        print("[Shopping Agent] Error reading token:", e)
         return
 
     # 1. Valid action: search
@@ -49,7 +49,7 @@ def main():
         )
         
         # 3. INVALID action: attempt checkout (Scope Violation Demo)
-        print("\n🛒 [Shopping Agent] Attempting to checkout (this should be blocked!)...")
+        print("[Shopping Agent] Attempting to checkout (this should be blocked!)...")
         agent_client.invoke(
             token=my_token,
             tool_name="checkout",
@@ -57,15 +57,15 @@ def main():
             execute_fn=execute_tool
         )
     except PermissionError:
-        print("🛒 [Shopping Agent] Checkout was blocked as expected.")
+        print("[Shopping Agent] Checkout was blocked as expected.")
 
     # 4. EXPIRED action: wait for TTL to expire and try again (Token Expiry Demo)
     ttl_delay = int(os.getenv("SHOPPING_AGENT_TTL", "10")) + 1
-    print(f"\n🛒 [Shopping Agent] Waiting {ttl_delay} seconds to demo token expiry...")
+    print(f"[Shopping Agent] Waiting {ttl_delay} seconds to demo token expiry...")
     time.sleep(ttl_delay)
     
     try:
-        print("\n🛒 [Shopping Agent] Attempting another search (should be expired!)...")
+        print("[Shopping Agent] Attempting another search (should be expired!)...")
         agent_client.invoke(
             token=my_token,
             tool_name="search_items",
@@ -73,7 +73,7 @@ def main():
             execute_fn=execute_tool
         )
     except PermissionError:
-        print("🛒 [Shopping Agent] Token expired as expected.")
+        print("[Shopping Agent] Token expired as expected.")
 
 if __name__ == "__main__":
     main()

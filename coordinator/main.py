@@ -18,11 +18,11 @@ from mock_armoriq.client import ArmorIQClient
 
 def main():
     print("=========================================================")
-    print("🤖 AUTHORCHAIN COORDINATOR")
+    print("AUTHORCHAIN COORDINATOR")
     print("=========================================================\n")
     
     prompt = "Book me a flight to Delhi, clear my schedule on Thursday, and reorder headphones."
-    print(f"👤 USER INTENT: \"{prompt}\"")
+    print(f"USER INTENT: \"{prompt}\"")
     print("\n[Coordinator] Parsing intent into sub-tasks (Mock LLM)...\n")
     
     # Coordinator identity
@@ -83,7 +83,7 @@ def main():
         subprocess.run([sys.executable, agent_script], env=env)
         
     print("\n=========================================================")
-    print("✅ Demo Complete. View the Streamlit dashboard for audit logs.")
+    print("Demo Complete. View the Streamlit dashboard for audit logs.")
     print("=========================================================")
 
 if __name__ == "__main__":
