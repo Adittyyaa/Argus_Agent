@@ -15,6 +15,6 @@
   "env": {
     "PYTHONUNBUFFERED": "1",
     "ARMORIQ_MODE": "mock",
-    "ARGUS_DB": "/tmp/audit.db"
+    "ARGUS_DB": "libsql://argus-db-aditya013.aws-ap-south-1.turso.io"
   }
 }
