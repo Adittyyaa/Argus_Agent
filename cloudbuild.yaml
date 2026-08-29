@@ -1,0 +1,31 @@
+# Google Cloud Build configuration for Argus
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/argus:latest', '.']
+  
+  # Push the Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/argus:latest']
+  
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'argus'
+      - '--image=gcr.io/$PROJECT_ID/argus:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8501'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--set-env-vars=PYTHONUNBUFFERED=1,ARMORIQ_MODE=mock'
+
+images:
+  - 'gcr.io/$PROJECT_ID/argus:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
