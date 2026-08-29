@@ -1,1 +1,1 @@
-web: python3 -m streamlit run dashboard/app.py --server.headless true --server.port $PORT --server.address 0.0.0.0 --server.enableCORS false --server.enableXsrfProtection false --browser.gatherUsageStats false --server.baseUrlPath ""
+web: python main.py
