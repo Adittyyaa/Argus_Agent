@@ -69,7 +69,12 @@ class AuditLogger:
 
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or os.environ.get("ARGUS_DB", os.path.join(_ROOT, "audit.db"))
-        self._init_db()
+        self.init_error = None
+        try:
+            self._init_db()
+        except Exception as e:
+            self.init_error = str(e)
+            print(f"[AuditLogger] Database initialization failed: {e}")
 
     def _conn(self):
         if self.db_path.startswith(("libsql://", "https://", "http://")):
@@ -139,12 +144,15 @@ class AuditLogger:
         user_email:  str,
         coordinator: str,
     ) -> None:
-        with self._conn() as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO plans VALUES (?,?,?,?,?,?)",
-                (plan_id, self._now(), description, json.dumps(tools), user_email, coordinator),
-            )
-            conn.commit()
+        try:
+            with self._conn() as conn:
+                conn.execute(
+                    "INSERT OR REPLACE INTO plans VALUES (?,?,?,?,?,?)",
+                    (plan_id, self._now(), description, json.dumps(tools), user_email, coordinator),
+                )
+                conn.commit()
+        except Exception as e:
+            print(f"[AuditLogger] log_plan failed: {e}")
 
     def log_delegation(
         self,
@@ -157,16 +165,19 @@ class AuditLogger:
     ) -> None:
         issued_ts  = time.time()
         expires_ts = issued_ts + ttl_seconds
-        with self._conn() as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO delegations VALUES (?,?,?,?,?,?,?,?)",
-                (
-                    delegation_id, plan_id, agent_id, json.dumps(scope), ttl_seconds, issued_by,
-                    datetime.fromtimestamp(issued_ts,  timezone.utc).isoformat(),
-                    datetime.fromtimestamp(expires_ts, timezone.utc).isoformat(),
-                ),
-            )
-            conn.commit()
+        try:
+            with self._conn() as conn:
+                conn.execute(
+                    "INSERT OR REPLACE INTO delegations VALUES (?,?,?,?,?,?,?,?)",
+                    (
+                        delegation_id, plan_id, agent_id, json.dumps(scope), ttl_seconds, issued_by,
+                        datetime.fromtimestamp(issued_ts,  timezone.utc).isoformat(),
+                        datetime.fromtimestamp(expires_ts, timezone.utc).isoformat(),
+                    ),
+                )
+                conn.commit()
+        except Exception as e:
+            print(f"[AuditLogger] log_delegation failed: {e}")
 
     def log_invoke(
         self,
@@ -180,36 +191,45 @@ class AuditLogger:
         scope:         List[str],
         ttl_remaining: float,
     ) -> None:
-        with self._conn() as conn:
-            conn.execute(
-                """INSERT INTO invocations
-                   (timestamp,agent_id,tool_name,args,status,reason,
-                    plan_id,delegation_id,scope,ttl_remaining)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
-                (
-                    self._now(), agent_id, tool_name, json.dumps(args),
-                    status, reason, plan_id, delegation_id,
-                    json.dumps(scope), round(ttl_remaining, 2),
-                ),
-            )
-            conn.commit()
+        try:
+            with self._conn() as conn:
+                conn.execute(
+                    """INSERT INTO invocations
+                       (timestamp,agent_id,tool_name,args,status,reason,
+                        plan_id,delegation_id,scope,ttl_remaining)
+                       VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    (
+                        self._now(), agent_id, tool_name, json.dumps(args),
+                        status, reason, plan_id, delegation_id,
+                        json.dumps(scope), round(ttl_remaining, 2),
+                    ),
+                )
+                conn.commit()
+        except Exception as e:
+            print(f"[AuditLogger] log_invoke failed: {e}")
 
     # ── read helpers used by the dashboard ───────────────────────────
 
     def _execute_and_fetch_dicts(self, query: str) -> List[dict]:
-        with self._conn() as conn:
-            cursor = conn.execute(query)
-            rows = cursor.fetchall()
-            
-            # Check if Row factory is set (for standard sqlite3)
-            if hasattr(conn, "row_factory") and conn.row_factory is sqlite3.Row:
-                return [dict(r) for r in rows]
+        if self.init_error:
+            return []
+        try:
+            with self._conn() as conn:
+                cursor = conn.execute(query)
+                rows = cursor.fetchall()
                 
-            # Fallback/LibSQL manual dictionary creation
-            if not cursor.description:
-                return []
-            columns = [col[0] for col in cursor.description]
-            return [dict(zip(columns, row)) for row in rows]
+                # Check if Row factory is set (for standard sqlite3)
+                if hasattr(conn, "row_factory") and conn.row_factory is sqlite3.Row:
+                    return [dict(r) for r in rows]
+                    
+                # Fallback/LibSQL manual dictionary creation
+                if not cursor.description:
+                    return []
+                columns = [col[0] for col in cursor.description]
+                return [dict(zip(columns, row)) for row in rows]
+        except Exception as e:
+            print(f"[AuditLogger] Query failed: {e}")
+            return []
 
     def get_plans(self) -> List[dict]:
         return self._execute_and_fetch_dicts("SELECT * FROM plans ORDER BY timestamp DESC")
@@ -221,9 +241,15 @@ class AuditLogger:
         return self._execute_and_fetch_dicts("SELECT * FROM invocations ORDER BY timestamp DESC")
 
     def get_stats(self) -> dict:
-        with self._conn() as conn:
-            total   = conn.execute("SELECT COUNT(*) FROM invocations").fetchone()[0]
-            allowed = conn.execute("SELECT COUNT(*) FROM invocations WHERE status='ALLOWED'").fetchone()[0]
-            blocked = conn.execute("SELECT COUNT(*) FROM invocations WHERE status='BLOCKED'").fetchone()[0]
-            expired = conn.execute("SELECT COUNT(*) FROM invocations WHERE status='EXPIRED'").fetchone()[0]
-        return {"total": total, "allowed": allowed, "blocked": blocked, "expired": expired}
+        if self.init_error:
+            return {"total": 0, "allowed": 0, "blocked": 0, "expired": 0}
+        try:
+            with self._conn() as conn:
+                total   = conn.execute("SELECT COUNT(*) FROM invocations").fetchone()[0]
+                allowed = conn.execute("SELECT COUNT(*) FROM invocations WHERE status='ALLOWED'").fetchone()[0]
+                blocked = conn.execute("SELECT COUNT(*) FROM invocations WHERE status='BLOCKED'").fetchone()[0]
+                expired = conn.execute("SELECT COUNT(*) FROM invocations WHERE status='EXPIRED'").fetchone()[0]
+            return {"total": total, "allowed": allowed, "blocked": blocked, "expired": expired}
+        except Exception as e:
+            print(f"[AuditLogger] get_stats failed: {e}")
+            return {"total": 0, "allowed": 0, "blocked": 0, "expired": 0}
