@@ -13,6 +13,10 @@ import subprocess
 import pandas as pd
 import streamlit as st
 
+# Fix SSL issues for cloud deployment
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from audit.logger import AuditLogger
 from mock_armoriq.client import ArmorIQClient

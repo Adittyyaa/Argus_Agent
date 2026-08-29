@@ -1,0 +1,22 @@
+[server]
+headless = true
+port = 8501
+address = "0.0.0.0"
+enableCORS = false
+enableXsrfProtection = false
+baseUrlPath = ""
+
+[browser]
+gatherUsageStats = false
+serverAddress = "0.0.0.0"
+serverPort = 8501
+
+[theme]
+primaryColor = "#6366f1"
+backgroundColor = "#ffffff" 
+secondaryBackgroundColor = "#f8fafc"
+textColor = "#1f2937"
+
+# Cloud deployment settings
+[global]
+suppressDeprecationWarnings = true
