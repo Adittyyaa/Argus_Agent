@@ -1,0 +1,68 @@
+# Zop Platform Deployment Configuration
+# This file configures Argus for deployment on Zop Cloud Platform
+
+version: "1"
+name: "argus"
+
+# Build configuration
+build:
+  dockerfile: "Dockerfile"
+  context: "."
+
+# Services configuration
+services:
+  web:
+    image: argus-web
+    build:
+      dockerfile: Dockerfile.zop
+    ports:
+      - "8501:8501"
+    environment:
+      PORT: "8501"
+      PYTHONUNBUFFERED: "1"
+      ARMORIQ_MODE: "mock"
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_SERVER_ADDRESS: "0.0.0.0"
+      STREAMLIT_SERVER_PORT: "8501"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Ingress configuration for HTTPS
+ingress:
+  - host: "argus.zopcloud.zop.dev"
+    paths:
+      - path: "/"
+        service: "web"
+        port: 8501
+    tls:
+      enabled: true
+      certificate: "auto" # Let Zop handle SSL certificates
+
+# Resource limits
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+
+# Health checks
+readinessProbe:
+  httpGet:
+    path: "/health"
+    port: 8501
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+livenessProbe:
+  httpGet:
+    path: "/"
+    port: 8501
+  initialDelaySeconds: 60
+  periodSeconds: 20

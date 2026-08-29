@@ -1,0 +1,19 @@
+{
+  "name": "argus-agent",
+  "version": "1.0.0",
+  "description": "Argus Multi-Agent Governance System",
+  "repository": "https://github.com/Adittyyaa/Argus_Agent.git",
+  "deploy": {
+    "platform": "zop",
+    "domain": "argus.zopcloud.zop.dev",
+    "ssl": true,
+    "port": 8501,
+    "build": "pip install -r requirements.txt",
+    "start": "streamlit run dashboard/app.py --server.headless true --server.port $PORT --server.address 0.0.0.0",
+    "env": {
+      "PORT": "8501",
+      "PYTHONUNBUFFERED": "1",
+      "ARMORIQ_MODE": "mock"
+    }
+  }
+}

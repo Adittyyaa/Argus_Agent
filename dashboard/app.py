@@ -29,6 +29,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Add health check endpoint for cloud deployment
+@st.cache_data
+def health_check():
+    return {"status": "healthy", "service": "argus"}
+
+# Handle different URL patterns for cloud deployment  
+if st.query_params.get("health"):
+    st.write(health_check())
+    st.stop()
+
 # Custom Styling — Professional Theme
 st.markdown("""
 <style>
@@ -223,6 +233,7 @@ with st.sidebar:
     else:
         st.info("ArmorIQ Local Mock Mode")
         st.caption("Running local HMAC verification.")
+        st.caption(f"**Deployed from:** https://github.com/Adittyyaa/Argus_Agent")
         
     st.divider()
     
