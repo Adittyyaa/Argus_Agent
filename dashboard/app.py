@@ -558,7 +558,7 @@ with tab3:
                 }
             }
             
-            # Save configuration for the coordinator to read
+            # Save configuration — use absolute path so custom_coordinator finds it
             config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "custom_config.json")
             with open(config_path, "w") as f:
                 json.dump(custom_config, f, indent=2)

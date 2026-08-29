@@ -7,22 +7,34 @@ This allows users to control agents through the web interface.
 import sys
 import os
 import json
-import subprocess
 import time
-import httpx
 from typing import Dict, Any
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mock_armoriq.client import ArmorIQClient
 
 def execute_tool(tool_name: str, args: dict, mcp_port: int = 8001) -> dict:
-    """Execute a tool against the appropriate MCP server"""
-    mcp_url = f"http://localhost:{mcp_port}/tools/call"
-    try:
-        resp = httpx.post(mcp_url, json={"tool_name": tool_name, "args": args}, timeout=10.0)
-        return resp.json()
-    except Exception as e:
-        return {"error": str(e), "status": "failed"}
+    """Mock tool execution — no MCP server needed on cloud."""
+    mock_responses = {
+        "search_flights": {"flights": [{"id": "FL-001", "origin": args.get("origin","NYC"), "destination": args.get("destination","TOK"), "price": 850}]},
+        "book_flight":    {"booking_id": "BK-001", "status": "CONFIRMED", "passenger": args.get("passenger_name","Passenger")},
+        "cancel_flight":  {"status": "CANCELLED"},
+        "read_events":    {"events": [{"id": "evt-001", "title": "CONFLICT: Old Meeting", "day": args.get("date","Thursday")}]},
+        "create_event":   {"event_id": "evt-new", "status": "CREATED", "title": args.get("title","Meeting")},
+        "delete_event":   {"deleted": args.get("event_id"), "status": "DELETED"},
+        "update_event":   {"status": "UPDATED"},
+        "schedule_meeting": {"meeting_id": "mtg-001", "status": "SCHEDULED"},
+        "search_items":   {"results": [{"id": "item-001", "name": "Laptop Pro", "price": args.get("max_price", 999)}]},
+        "add_to_cart":    {"cart_id": "cart-99", "status": "ADDED"},
+        "checkout":       {"order_id": "ord-001", "status": "PLACED"},
+        "track_order":    {"order_id": args.get("order_id","ord-001"), "status": "IN_TRANSIT"},
+        "send_email":     {"status": "SENT"},
+        "read_inbox":     {"messages": []},
+        "make_payment":   {"transaction_id": "txn-001", "status": "SUCCESS"},
+        "check_balance":  {"balance": 5000.00},
+        "transfer_funds": {"status": "TRANSFERRED"},
+    }
+    return mock_responses.get(tool_name, {"status": "ok", "tool": tool_name})
 
 def get_mcp_port(tool_name: str) -> int:
     """Map tool names to their MCP server ports"""
@@ -153,8 +165,8 @@ def prepare_tool_args(agent_name: str, tool_name: str, gui_args: Dict[str, Any])
     return {}  # Default empty args
 
 def main():
-    # Load custom configuration from GUI
-    config_path = "custom_config.json"
+    # Load custom configuration from GUI — use absolute path
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "custom_config.json")
     if not os.path.exists(config_path):
         print("No custom configuration found. Use the GUI to create a scenario.")
         return
