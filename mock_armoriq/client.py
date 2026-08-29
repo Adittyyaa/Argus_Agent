@@ -23,21 +23,23 @@ import base64
 from typing import Any, Callable, Dict, List, Optional
 from datetime import datetime
 
-from dotenv import load_dotenv
-
-# ── Load environment variables from .env ──────────────────────────────
-load_dotenv()
+# ── Load environment variables from .env if available ────────────────
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    _HERE = os.path.dirname(os.path.abspath(__file__))
+    _ROOT = os.path.dirname(_HERE)
+    parent_env = os.path.join(os.path.dirname(_ROOT), ".env")
+    if os.path.exists(parent_env):
+        load_dotenv(parent_env)
+except Exception:
+    pass
 
 # ── resolve project root so audit.logger can be imported from any cwd ──
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
-
-# Check for parent directory .env if not loaded
-parent_env = os.path.join(os.path.dirname(_ROOT), ".env")
-if os.path.exists(parent_env):
-    load_dotenv(parent_env)
 
 from audit.logger import AuditLogger  # noqa: E402  (import after path fix)
 
