@@ -65,21 +65,66 @@ CREATE TABLE IF NOT EXISTS invocations (
 
 
 class AuditLogger:
-    """Thread-safe, multi-process SQLite audit logger."""
+    """Thread-safe, multi-process SQLite/libSQL (Turso) audit logger."""
 
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or os.environ.get("ARGUS_DB", os.path.join(_ROOT, "audit.db"))
         self._init_db()
 
+    def _conn(self):
+        if self.db_path.startswith(("libsql://", "https://", "http://")):
+            import libsql
+            token = os.environ.get("TURSO_AUTH_TOKEN", "")
+            return libsql.connect(self.db_path, auth_token=token)
+        else:
+            conn = sqlite3.connect(self.db_path, timeout=10, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            return conn
+
     # ── schema bootstrap ──────────────────────────────────────────────
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.executescript(_PRAGMAS + _SCHEMA)
-
-    def _conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path, timeout=10, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
+            if not self.db_path.startswith(("libsql://", "https://", "http://")):
+                conn.executescript(_PRAGMAS)
+                
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS plans (
+                    plan_id        TEXT    PRIMARY KEY,
+                    timestamp      TEXT    NOT NULL,
+                    description    TEXT,
+                    declared_tools TEXT,
+                    user_email     TEXT,
+                    coordinator    TEXT
+                );
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS delegations (
+                    delegation_id  TEXT    PRIMARY KEY,
+                    plan_id        TEXT    NOT NULL,
+                    agent_id       TEXT    NOT NULL,
+                    scope          TEXT    NOT NULL,
+                    ttl_seconds    INTEGER NOT NULL,
+                    issued_by      TEXT    NOT NULL,
+                    issued_at      TEXT    NOT NULL,
+                    expires_at     TEXT    NOT NULL
+                );
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS invocations (
+                    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp      TEXT    NOT NULL,
+                    agent_id       TEXT    NOT NULL,
+                    tool_name      TEXT    NOT NULL,
+                    args           TEXT,
+                    status         TEXT    NOT NULL,
+                    reason         TEXT,
+                    plan_id        TEXT,
+                    delegation_id  TEXT,
+                    scope          TEXT,
+                    ttl_remaining  REAL
+                );
+            """)
+            conn.commit()
 
     def _now(self) -> str:
         return datetime.now(timezone.utc).isoformat()
@@ -99,6 +144,7 @@ class AuditLogger:
                 "INSERT OR REPLACE INTO plans VALUES (?,?,?,?,?,?)",
                 (plan_id, self._now(), description, json.dumps(tools), user_email, coordinator),
             )
+            conn.commit()
 
     def log_delegation(
         self,
@@ -120,6 +166,7 @@ class AuditLogger:
                     datetime.fromtimestamp(expires_ts, timezone.utc).isoformat(),
                 ),
             )
+            conn.commit()
 
     def log_invoke(
         self,
@@ -145,23 +192,33 @@ class AuditLogger:
                     json.dumps(scope), round(ttl_remaining, 2),
                 ),
             )
+            conn.commit()
 
     # ── read helpers used by the dashboard ───────────────────────────
 
-    def get_plans(self) -> List[dict]:
+    def _execute_and_fetch_dicts(self, query: str) -> List[dict]:
         with self._conn() as conn:
-            rows = conn.execute("SELECT * FROM plans ORDER BY timestamp DESC").fetchall()
-        return [dict(r) for r in rows]
+            cursor = conn.execute(query)
+            rows = cursor.fetchall()
+            
+            # Check if Row factory is set (for standard sqlite3)
+            if hasattr(conn, "row_factory") and conn.row_factory is sqlite3.Row:
+                return [dict(r) for r in rows]
+                
+            # Fallback/LibSQL manual dictionary creation
+            if not cursor.description:
+                return []
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+
+    def get_plans(self) -> List[dict]:
+        return self._execute_and_fetch_dicts("SELECT * FROM plans ORDER BY timestamp DESC")
 
     def get_delegations(self) -> List[dict]:
-        with self._conn() as conn:
-            rows = conn.execute("SELECT * FROM delegations ORDER BY issued_at DESC").fetchall()
-        return [dict(r) for r in rows]
+        return self._execute_and_fetch_dicts("SELECT * FROM delegations ORDER BY issued_at DESC")
 
     def get_invocations(self) -> List[dict]:
-        with self._conn() as conn:
-            rows = conn.execute("SELECT * FROM invocations ORDER BY timestamp DESC").fetchall()
-        return [dict(r) for r in rows]
+        return self._execute_and_fetch_dicts("SELECT * FROM invocations ORDER BY timestamp DESC")
 
     def get_stats(self) -> dict:
         with self._conn() as conn:
