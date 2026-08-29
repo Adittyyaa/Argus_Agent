@@ -610,12 +610,19 @@
                         let date = new Date(item.timestamp).toLocaleString();
                         let argsFormatted = '';
                         try {
-                            const parsedArgs = JSON.parse(item.args);
-                            argsFormatted = Object.entries(parsedArgs)
-                                .map(([k, v]) => `<span class="badge-scope">${k}: ${v}</span>`)
-                                .join(' ');
+                            let parsedArgs = item.args;
+                            if (typeof parsedArgs === 'string') {
+                                parsedArgs = JSON.parse(parsedArgs);
+                            }
+                            if (parsedArgs && typeof parsedArgs === 'object' && Object.keys(parsedArgs).length > 0) {
+                                argsFormatted = Object.entries(parsedArgs)
+                                    .map(([k, v]) => `<span class="badge-scope">${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}</span>`)
+                                    .join(' ');
+                            } else {
+                                argsFormatted = '<span style="color: var(--text-secondary); font-size: 0.75rem;">{}</span>';
+                            }
                         } catch (e) {
-                            argsFormatted = item.args;
+                            argsFormatted = String(item.args || '');
                         }
 
                         html += `

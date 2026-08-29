@@ -12,6 +12,11 @@
       "dest": "main.py"
     }
   ],
+  "functions": {
+    "main.py": {
+      "maxDuration": 60
+    }
+  },
   "env": {
     "PYTHONUNBUFFERED": "1",
     "ARMORIQ_MODE": "mock",
