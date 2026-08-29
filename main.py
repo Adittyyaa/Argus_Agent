@@ -61,8 +61,13 @@ async def run_demo(request: Request):
     body = await request.json()
     user_prompt = body.get("user_prompt", "Book me a flight to Delhi, clear my schedule on Thursday, and reorder headphones.")
     shopping_ttl = int(body.get("shopping_ttl", 10))
-
-    env = {**os.environ, "PYTHONUNBUFFERED": "1", "SHOPPING_AGENT_TTL": str(shopping_ttl)}
+    pythonpath = ":".join(sys.path)
+    env = {
+        **os.environ,
+        "PYTHONUNBUFFERED": "1",
+        "SHOPPING_AGENT_TTL": str(shopping_ttl),
+        "PYTHONPATH": pythonpath
+    }
     root = os.path.dirname(os.path.abspath(__file__))
 
     result = subprocess.run(
@@ -88,7 +93,12 @@ async def run_custom(request: Request):
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
 
-    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+    pythonpath = ":".join(sys.path)
+    env = {
+        **os.environ,
+        "PYTHONUNBUFFERED": "1",
+        "PYTHONPATH": pythonpath
+    }
     result = subprocess.run(
         [sys.executable, "custom_coordinator.py"],
         cwd=root, capture_output=True, text=True, env=env, timeout=120

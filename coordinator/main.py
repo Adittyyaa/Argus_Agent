@@ -81,7 +81,8 @@ def main():
         "agents/shopping_agent.py"
     ]
     
-    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+    pythonpath = os.environ.get("PYTHONPATH", ":".join(sys.path))
+    env = {**os.environ, "PYTHONUNBUFFERED": "1", "PYTHONPATH": pythonpath}
     for agent_script in agents:
         print(f"\n================ Running {agent_script} ================")
         subprocess.run([sys.executable, agent_script], env=env)
