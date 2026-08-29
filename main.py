@@ -9,27 +9,23 @@ import sys
 import subprocess
 
 def main():
+    # Zop injects $PORT — fall back to 8501 for local dev
     port = os.environ.get('PORT', '8501')
 
-    os.environ['PYTHONUNBUFFERED'] = '1'
-    os.environ['STREAMLIT_SERVER_HEADLESS'] = 'true'
-    os.environ['STREAMLIT_SERVER_ENABLE_CORS'] = 'false'
-    os.environ['STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION'] = 'false'
-    os.environ['STREAMLIT_BROWSER_GATHER_USAGE_STATS'] = 'false'
-
-    print(f"Starting Argus on port {port}")
+    print(f"[Argus] Starting on port {port}")
 
     cmd = [
-        sys.executable, '-m', 'streamlit', 'run', 'dashboard/app.py',
-        '--server.headless', 'true',
+        sys.executable, '-m', 'streamlit', 'run',
+        'dashboard/app.py',
         '--server.port', port,
         '--server.address', '0.0.0.0',
+        '--server.headless', 'true',
         '--server.enableCORS', 'false',
         '--server.enableXsrfProtection', 'false',
         '--browser.gatherUsageStats', 'false',
     ]
 
-    subprocess.run(cmd, check=True)
+    os.execvp(sys.executable, cmd)  # replace process (no subprocess, no zombie)
 
 if __name__ == '__main__':
     main()

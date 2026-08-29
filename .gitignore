@@ -7,10 +7,11 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Data & SQLite Databases - Keep sample files but exclude runtime data
+# Data & SQLite Databases
+audit.db
 audit.db-wal
 audit.db-shm
-# Include tokens.json for demo but ignore if it contains real tokens
+custom_config.json
 
 # Operating System & IDE
 .DS_Store

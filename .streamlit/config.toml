@@ -1,27 +1,19 @@
 [server]
 headless = true
-port = 8501
 address = "0.0.0.0"
 enableCORS = false
 enableXsrfProtection = false
 baseUrlPath = ""
 enableWebsocketCompression = false
-allowRunOnSave = false
 
 [browser]
 gatherUsageStats = false
 
 [runner]
 magicEnabled = false
-installTracer = false
-fixMatplotlib = false
 
 [theme]
 primaryColor = "#6366f1"
-backgroundColor = "#ffffff" 
-secondaryBackgroundColor = "#f8fafc"
-textColor = "#1f2937"
-
-[global]
-suppressDeprecationWarnings = true
-showWarningOnDirectExecution = false
+backgroundColor = "#0b0f1a"
+secondaryBackgroundColor = "#0e1422"
+textColor = "#f1f5f9"
