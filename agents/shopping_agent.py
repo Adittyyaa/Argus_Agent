@@ -35,7 +35,10 @@ def main():
     agent_client = ArmorIQClient(agent_id="agent-shopping-003")
 
     # Resolve token file relative to project root (not cwd)
-    token_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
+    if os.environ.get("VERCEL"):
+        token_file = "/tmp/tokens.json"
+    else:
+        token_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
     try:
         with open(token_file, "r") as f:
             my_token = json.load(f)["shopping_agent"]

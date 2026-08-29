@@ -166,7 +166,10 @@ def prepare_tool_args(agent_name: str, tool_name: str, gui_args: Dict[str, Any])
 
 def main():
     # Load custom configuration from GUI — use absolute path
-    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "custom_config.json")
+    if os.environ.get("VERCEL"):
+        config_path = "/tmp/custom_config.json"
+    else:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "custom_config.json")
     if not os.path.exists(config_path):
         print("No custom configuration found. Use the GUI to create a scenario.")
         return

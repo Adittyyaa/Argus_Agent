@@ -64,8 +64,11 @@ def main():
         ttl_seconds=shopping_ttl
     )
     
-    # Save tokens for sub-agents to read — use absolute path so agents find it
-    token_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
+    # Save tokens for sub-agents to read — use /tmp on Vercel/read-only systems
+    if os.environ.get("VERCEL"):
+        token_file = "/tmp/tokens.json"
+    else:
+        token_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
     with open(token_file, "w") as f:
         json.dump(tokens, f)
         

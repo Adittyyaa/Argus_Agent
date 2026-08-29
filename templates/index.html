@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Argus - Multi-Agent Governance System</title>
+    <meta name="description" content="Cryptographic intent verification and zero-trust security access control dashboard for multi-agent LLM systems.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-surface: rgba(17, 24, 39, 0.7);
+            --bg-card: rgba(31, 41, 55, 0.4);
+            --border-glow: rgba(99, 102, 241, 0.2);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            
+            --color-primary: #6366f1;
+            --color-primary-hover: #4f46e5;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-info: #06b6d4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 3rem;
+            line-height: 1.5;
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Header Design */
+        header {
+            display: flex;
+            align-content: center;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 2.5rem;
+        }
+
+        .header-title-area h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-title-area p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--color-success);
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge-live::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--color-success);
+            border-radius: 50%;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Metric Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+        }
+
+        .metric-card.total::after { background: var(--color-info); }
+        .metric-card.allowed::after { background: var(--color-success); }
+        .metric-card.blocked::after { background: var(--color-danger); }
+        .metric-card.expired::after { background: var(--color-warning); }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        /* Main Workspace Grid */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels styling */
+        .panel {
+            background: var(--bg-surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Interactive Controls */
+        .btn {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background-color: var(--color-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Terminal Console */
+        .terminal-container {
+            background: #030712;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            font-family: 'Fira Code', monospace;
+            margin-top: 1rem;
+        }
+
+        .terminal-header {
+            background: #111827;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-red { background-color: var(--color-danger); }
+        .dot-yellow { background-color: var(--color-warning); }
+        .dot-green { background-color: var(--color-success); }
+
+        .terminal-title {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            font-weight: 500;
+        }
+
+        .terminal-body {
+            padding: 1.25rem;
+            height: 320px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #d1d5db;
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .terminal-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.25rem;
+            white-space: pre-wrap;
+        }
+
+        .terminal-line.status-info { color: var(--color-info); }
+        .terminal-line.status-success { color: var(--color-success); }
+        .terminal-line.status-error { color: var(--color-danger); }
+        .terminal-line.status-warning { color: var(--color-warning); }
+
+        /* Attack Simulation Panel */
+        .sim-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sim-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .sim-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(31, 41, 55, 0.6);
+        }
+
+        .sim-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .sim-card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .sim-card-desc {
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Log Table */
+        .audit-panel {
+            width: 100%;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background: #111827;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Badges */
+        .badge-status {
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .badge-status.allowed {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-status.blocked {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--color-danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .badge-status.expired {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--color-warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .badge-status.error {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--color-danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-scope {
+            background-color: rgba(99, 102, 241, 0.12);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            margin-right: 0.25rem;
+            font-family: 'Fira Code', monospace;
+            display: inline-block;
+        }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-title-area">
+                <h1>🛡️ Argus Governance Swarm</h1>
+                <p>Cryptographic intent verification and access control for multi-agent LLM systems</p>
+            </div>
+            <div class="badge-live" id="live-indicator">Active Monitoring</div>
+        </header>
+
+        <!-- Stats Row -->
+        <section class="metrics-grid">
+            <div class="metric-card total">
+                <div class="metric-label">Total Invocations</div>
+                <div class="metric-value" id="stat-total">{{ stats.total }}</div>
+            </div>
+            <div class="metric-card allowed">
+                <div class="metric-label">Allowed Calls</div>
+                <div class="metric-value" id="stat-allowed">{{ stats.allowed }}</div>
+            </div>
+            <div class="metric-card blocked">
+                <div class="metric-label">Blocked (Scope Violation)</div>
+                <div class="metric-value" id="stat-blocked">{{ stats.blocked }}</div>
+            </div>
+            <div class="metric-card expired">
+                <div class="metric-label">Expired (TTL Delay)</div>
+                <div class="metric-value" id="stat-expired">{{ stats.expired }}</div>
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <div class="workspace-grid">
+            <!-- Left Side: Interactive Demo Console -->
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">⚡ Interactive Demo Runner</h2>
+                    <button class="btn" id="btn-run-demo" onclick="runDemo()">Run Agent Swarm</button>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Runs the Coordinator Agent to parse intent, mint cryptographic tokens with HMAC, and spawn flight, calendar, and shopping agents.
+                </p>
+                <div class="terminal-container">
+                    <div class="terminal-header">
+                        <span class="terminal-dot dot-red"></span>
+                        <span class="terminal-dot dot-yellow"></span>
+                        <span class="terminal-dot dot-green"></span>
+                        <span class="terminal-title">argus-swarm-logs.sh</span>
+                    </div>
+                    <div class="terminal-body" id="terminal-body">
+                        <div class="terminal-line status-info">Console initialized. Ready to execute multi-agent swarm demo.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Attack Simulator -->
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">🎯 Attack Simulation Sandbox</h2>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Test the robustness of HMAC-SHA256 verification and TTL-bounded scopes against simulated malicious agent behaviors.
+                </p>
+                <div class="sim-grid">
+                    <!-- Scope Attack -->
+                    <div class="sim-card">
+                        <div class="sim-card-header">
+                            <h3 class="sim-card-title">Scope Violation Attack</h3>
+                            <button class="btn btn-outline" id="btn-sim-scope" onclick="runSimulation('scope')">Simulate</button>
+                        </div>
+                        <p class="sim-card-desc">Shopping Agent attempts to call 'checkout' tool, which was omitted from its cryptographic scope token. System should block it.</p>
+                    </div>
+
+                    <!-- Expiry Attack -->
+                    <div class="sim-card">
+                        <div class="sim-card-header">
+                            <h3 class="sim-card-title">Token Expiry Attack</h3>
+                            <button class="btn btn-outline" id="btn-sim-expiry" onclick="runSimulation('expiry')">Simulate</button>
+                        </div>
+                        <p class="sim-card-desc">Shopping Agent waits for its short (10s) cryptographic scope TTL to expire, then attempts to make a tool call. System should reject.</p>
+                    </div>
+
+                    <!-- Signature Forgery -->
+                    <div class="sim-card">
+                        <div class="sim-card-header">
+                            <h3 class="sim-card-title">Signature Forgery Attack</h3>
+                            <button class="btn btn-outline" id="btn-sim-forged" onclick="runSimulation('forged')">Simulate</button>
+                        </div>
+                        <p class="sim-card-desc">A compromised sub-agent modifies its cryptographic token data payload directly, forging the HMAC. System signature verification should fail.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Invocations Table -->
+        <section class="panel audit-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">📋 Real-Time Cryptographic Audit Trails</h2>
+                <button class="btn btn-outline" onclick="loadAuditLogs()">Refresh Logs</button>
+            </div>
+            <div class="table-container">
+                <table id="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Agent ID</th>
+                            <th>Target Tool</th>
+                            <th>Parameters</th>
+                            <th>Status Badge</th>
+                            <th>Reason / Verification Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-tbody">
+                        <tr class="empty-state-row">
+                            <td colspan="6" class="empty-state">No invocations logged. Run the agent swarm to generate audit entries.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Frontend Scripting -->
+    <script>
+        // Load logs and metrics immediately on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMetrics();
+            loadAuditLogs();
+            
+            // Poll for logs and metrics every 3 seconds to keep dashboard live
+            setInterval(() => {
+                loadMetrics();
+                loadAuditLogs();
+            }, 3000);
+        });
+
+        function loadMetrics() {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('stat-total').innerText = data.total;
+                    document.getElementById('stat-allowed').innerText = data.allowed;
+                    document.getElementById('stat-blocked').innerText = data.blocked;
+                    document.getElementById('stat-expired').innerText = data.expired;
+                })
+                .catch(err => console.error("Error loading metrics:", err));
+        }
+
+        function loadAuditLogs() {
+            fetch('/api/invocations')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('audit-tbody');
+                    if (!data || data.length === 0) {
+                        tbody.innerHTML = `
+                            <tr class="empty-state-row">
+                                <td colspan="6" class="empty-state">No invocations logged. Run the agent swarm to generate audit entries.</td>
+                            </tr>`;
+                        return;
+                    }
+
+                    let html = '';
+                    data.forEach(item => {
+                        let badgeClass = item.status.toLowerCase();
+                        let date = new Date(item.timestamp).toLocaleString();
+                        let argsFormatted = '';
+                        try {
+                            const parsedArgs = JSON.parse(item.args);
+                            argsFormatted = Object.entries(parsedArgs)
+                                .map(([k, v]) => `<span class="badge-scope">${k}: ${v}</span>`)
+                                .join(' ');
+                        } catch (e) {
+                            argsFormatted = item.args;
+                        }
+
+                        html += `
+                            <tr>
+                                <td style="color: var(--text-secondary); font-size: 0.8rem; font-family: 'Fira Code', monospace;">${date}</td>
+                                <td style="font-weight: 500;">${item.agent_id}</td>
+                                <td><span class="badge-scope" style="background-color: rgba(6, 182, 212, 0.1); color: #22d3ee; border-color: rgba(6, 182, 212, 0.2);">${item.tool_name}</span></td>
+                                <td>${argsFormatted}</td>
+                                <td><span class="badge-status ${badgeClass}">${item.status}</span></td>
+                                <td style="color: ${item.status === 'ALLOWED' ? 'var(--color-success)' : 'var(--color-danger)'}; font-size: 0.85rem;">
+                                    ${item.reason || ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                })
+                .catch(err => console.error("Error loading audit logs:", err));
+        }
+
+        function appendConsole(text, type = 'info') {
+            const body = document.getElementById('terminal-body');
+            const line = document.createElement('div');
+            line.className = `terminal-line status-${type}`;
+            line.innerText = text;
+            body.appendChild(line);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function runDemo() {
+            const btn = document.getElementById('btn-run-demo');
+            btn.disabled = true;
+            btn.innerText = 'Executing Swarm...';
+            
+            appendConsole('\n> Starting Argus Agent Swarm execution...', 'info');
+            
+            fetch('/api/run-demo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_prompt: "Book me a flight to Delhi, clear my schedule on Thursday, and reorder headphones.", shopping_ttl: 4 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = 'Run Agent Swarm';
+                
+                if (data.stdout) {
+                    const lines = data.stdout.split('\n');
+                    lines.forEach(l => {
+                        if (l.trim()) {
+                            if (l.includes('[SUCCESS]') || l.includes('Complete') || l.includes('[✓]')) {
+                                appendConsole(l, 'success');
+                            } else if (l.includes('[ERROR]') || l.includes('blocked') || l.includes('[✗]')) {
+                                appendConsole(l, 'error');
+                            } else if (l.includes('[WARNING]') || l.includes('expired') || l.includes('[!]')) {
+                                appendConsole(l, 'warning');
+                            } else {
+                                appendConsole(l, 'info');
+                            }
+                        }
+                    });
+                }
+                if (data.stderr) {
+                    appendConsole('STDERR: ' + data.stderr, 'error');
+                }
+                loadMetrics();
+                loadAuditLogs();
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerText = 'Run Agent Swarm';
+                appendConsole('API connection failed: ' + err, 'error');
+            });
+        }
+
+        function runSimulation(simType) {
+            const btn = document.getElementById(`btn-sim-${simType}`);
+            btn.disabled = true;
+            btn.innerText = 'Simulating...';
+            
+            appendConsole(`\n> Simulating ${simType.toUpperCase()} security breach attempt...`, 'warning');
+            
+            fetch('/api/attack-sim', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sim_type: simType })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = 'Simulate';
+                
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(res => {
+                        if (res.type === 'pass') {
+                            appendConsole(`[VERIFICATION PASSED] ${res.msg}`, 'success');
+                        } else {
+                            appendConsole(`[SECURITY BREACH DETECTED] ${res.msg}`, 'error');
+                        }
+                    });
+                }
+                loadMetrics();
+                loadAuditLogs();
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerText = 'Simulate';
+                appendConsole('Simulation endpoint failed: ' + err, 'error');
+            });
+        }
+    </script>
+</body>
+</html>

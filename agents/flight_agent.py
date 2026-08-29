@@ -37,7 +37,10 @@ def main():
     agent_client = ArmorIQClient(agent_id="agent-flight-001")
 
     # Read delegated token
-    token_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
+    if os.environ.get("VERCEL"):
+        token_file = "/tmp/tokens.json"
+    else:
+        token_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
     try:
         with open(token_file, "r") as f:
             my_token = json.load(f)["flight_agent"]
