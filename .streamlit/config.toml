@@ -5,11 +5,16 @@ address = "0.0.0.0"
 enableCORS = false
 enableXsrfProtection = false
 baseUrlPath = ""
+enableWebsocketCompression = false
+allowRunOnSave = false
 
 [browser]
 gatherUsageStats = false
-serverAddress = "0.0.0.0"
-serverPort = 8501
+
+[runner]
+magicEnabled = false
+installTracer = false
+fixMatplotlib = false
 
 [theme]
 primaryColor = "#6366f1"
@@ -17,6 +22,6 @@ backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f8fafc"
 textColor = "#1f2937"
 
-# Cloud deployment settings
 [global]
 suppressDeprecationWarnings = true
+showWarningOnDirectExecution = false

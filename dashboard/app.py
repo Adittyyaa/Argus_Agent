@@ -34,10 +34,13 @@ st.set_page_config(
 def health_check():
     return {"status": "healthy", "service": "argus"}
 
-# Handle different URL patterns for cloud deployment  
-if st.query_params.get("health"):
-    st.write(health_check())
-    st.stop()
+# Handle health check endpoint for Zop platform
+try:
+    if st.query_params.get("health") or "/healthz" in str(st.query_params):
+        st.write({"status": "healthy", "service": "argus", "version": "1.0.0"})
+        st.stop()
+except:
+    pass  # Ignore query param errors
 
 # Custom Styling — Professional Theme
 st.markdown("""
